@@ -13,21 +13,50 @@ public class Main {
         input = input.trim();
 
         String result = input;     // Make another string so we can do random stuff with it  
-        result = checkForSymbols(result); // Substitutes in the latex for symbols
+        result = replaceSymbols(result); // Substitutes in the latex for symbols
 
-        // Finds just the part we need to convert into a fraction
-        String fractionPart = result.substring(result.indexOf("(") + 1, result.indexOf("\\right)"));
-        String[] pieces = fractionPart.split("\\/"); // Put into array to make fraction
-        for (int i = 0; i < pieces.length; i++) {
-            pieces[i] = pieces[i].trim();
+
+        // Look for parens
+        if (result.contains("(") && result.contains(")")) {
+            String insideParens = result.substring(result.indexOf("(") + 1, result.indexOf("\\right)"));
+            if (insideParens.contains("/")) {
+                result = result.substring(0, result.indexOf("(") + 1) + convertToFraction(insideParens) + result.substring(result.indexOf("\\right)"));
+            }
+        } 
+        if (result.contains("/")) {
+            result = convertToFraction(result);
         }
-        result = result.substring(0, result.indexOf("(") + 1) + "\\frac{" + pieces[0] + "}{" + pieces[1] + "}" + result.substring(result.indexOf("\\right)"));
         
         System.out.println(result);
         
     }
 
-    public static String checkForSymbols(String input) {
+    public static void trimStringArray(String[] pieces) {
+        for (int i = 0; i < pieces.length; i++) {
+            pieces[i] = pieces[i].trim();
+        }
+    }
+
+    /**
+     * Converts string to LaTeX function
+     * @param fractionPart
+     * @return
+     */
+    public static String convertToFraction(String fractionPart) {
+        String[] pieces = fractionPart.split("\\/"); // Put into array to make fraction
+        trimStringArray(pieces);
+        return "\\frac{" + pieces[0] + "}{" + pieces[1] + "}";
+    }
+
+    /**
+     * Replaces all symbols in input with LaTeX if they exist
+     * @param input 
+     * @return input with LaTeX symbols inserted
+     *          Example:
+     *          input:  ( 2 )
+     *          output: \left( 2 \right)
+     */
+    public static String replaceSymbols(String input) {
         String result = input;
         for (String symbol : symbols.keySet()) {
             int index = result.indexOf(symbol);
@@ -39,4 +68,5 @@ public class Main {
 
         return result;
     }
+
 }
