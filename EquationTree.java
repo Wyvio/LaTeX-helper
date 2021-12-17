@@ -4,6 +4,11 @@ public class EquationTree {
     private EquationNode overallRoot;
     private List<String> operators;
     
+    /**
+     * Main method for testing purposes
+     * 
+     * @param args
+     */
     public static void main(String[] args) {
         // Find + or - first
         EquationTree tree = new EquationTree();
@@ -11,10 +16,18 @@ public class EquationTree {
         System.out.println(tree);
     }
 
+    /**
+     * Makes an empty tree
+     */
     public EquationTree() {
         this(new EquationNode(""));
     }
     
+    /**
+     * Makes a tree with a specified root
+     * 
+     * @param overallRoot
+     */
     public EquationTree(EquationNode overallRoot) {
         this.overallRoot = overallRoot;
         operators = new LinkedList<>();
