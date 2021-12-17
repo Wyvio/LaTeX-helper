@@ -3,18 +3,6 @@ import java.util.*;
 public class EquationTree {
     private EquationNode overallRoot;
     private List<String> operators;
-    
-    /**
-     * Main method for testing purposes
-     * 
-     * @param args
-     */
-    public static void main(String[] args) {
-        // Find + or - first
-        EquationTree tree = new EquationTree();
-        tree.makeTree("1+5^2/3-6");
-        System.out.println(tree);
-    }
 
     /**
      * Makes an empty tree
@@ -38,10 +26,21 @@ public class EquationTree {
         operators.add("^");
     }
 
+    /**
+     * Makes an equation tree from a string input
+     * 
+     * @param input
+     */
     public void makeTree(String input) {
         this.overallRoot = makeTreeHelper(input);
     }
     
+    /**
+     * makes tree :))
+     * 
+     * @param input
+     * @return
+     */
     private EquationNode makeTreeHelper(String input) {
         if (input.isEmpty()) {
             return null;
@@ -63,6 +62,9 @@ public class EquationTree {
         }
     }
     
+    /**
+     * Prints out LaTeX form 
+     */
     public String toString() {
         List<String> result = new ArrayList<>();
         toStringHelper(result, overallRoot);
