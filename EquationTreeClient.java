@@ -7,7 +7,7 @@ public class EquationTreeClient {
      * @param args
      */
     public static void main(String[] args) {   
-        test("1+5^2/3-6");        
+        test("sqrt(2+3)+(2+1)");        
     }
 
     public static void test(String testCase) {
