@@ -45,12 +45,17 @@ public class EquationTree {
         input = input.trim();
         if (input.isEmpty()) {
             return null;
-        } else if (isParensBaseCase(input)) {
+        } else if (isBaseCase("{", "}", input)) {
+            EquationNode root = new EquationNode("{");
+            root.right = new EquationNode("}");
+            root.left = makeTreeHelper(input.substring(1, input.length() - 1));
+            return root;
+        } else if (isBaseCase("(", ")", input)) {
             EquationNode root = new EquationNode("(");
             root.right = new EquationNode(")");
             root.left = makeTreeHelper(input.substring(1, input.length() - 1));
             return root;
-        } else if (isSqrtBaseCase(input)) {
+        } else if (isBaseCase("sqrt(", ")", input)) {
             EquationNode root = new EquationNode("sqrt(");
             root.right = new EquationNode(")");
             root.left = makeTreeHelper(input.substring(5, input.length() - 1));
@@ -60,6 +65,7 @@ public class EquationTree {
             boolean isSplit = false;
             int numRightParentheses = 0;
             int numRightSqrts = 0;
+            int numRightCBrackets = 0;
             for (String operator : operators) {
                 if (input.contains(operator)) {
                     for (int i = 0; i < input.length(); i++) {
@@ -68,6 +74,10 @@ public class EquationTree {
                             numRightSqrts++;
                             numRightParentheses++;
                             i += 4; // Skip to end of "sqrt(" so it is inside next
+                        } else if (c.equals("{")) {
+                            numRightCBrackets++;
+                        } else if (c.equals("}")) {
+                            numRightCBrackets--;
                         } else if (c.equals("(")) {
                             numRightParentheses++;
                         } else if (c.equals(")")) {
@@ -75,7 +85,7 @@ public class EquationTree {
                             if (numRightSqrts > 0) {
                                 numRightSqrts--;
                             }
-                        } else if (c.equals(operator) && numRightParentheses == 0) {
+                        } else if (c.equals(operator) && numRightParentheses == 0 && numRightCBrackets == 0) {
                             root = new EquationNode(operator);
                             root.left = makeTreeHelper(input.substring(0, i));
                             root.right = makeTreeHelper(input.substring(i + 1));
@@ -94,34 +104,18 @@ public class EquationTree {
         }
     }
 
-    private boolean isParensBaseCase(String input) {
-        if (input.charAt(0) == '(' && input.charAt(input.length() - 1) == ')') {
+    /**
+     * 
+     * @param symbol opening symbol e.g. sqrt(
+     *               assumes that ) will be closing symbol
+     * @param input input text to be parsed 
+     * @return true when input has function symbols at the start and end e.g. sqrt(...), false otherwise
+     */
+    private boolean isBaseCase(String symbol, String endSymbol, String input) {
+        if (input.indexOf(symbol) == 0 && input.indexOf(endSymbol) == (input.length() - 1)) {
             int numRightParentheses = 1;
 
-            int i = 1;
-            while (i < input.length() && numRightParentheses > 0) {
-                String c = "" + input.charAt(i);
-                if (c.equals("(")) {
-                    numRightParentheses++;
-                } else if (c.equals(")")) {
-                    numRightParentheses--;
-                }
-
-                i++;
-            }
-
-            return i == input.length();
-
-        } else {
-            return false;
-        }
-    }
-    
-    private boolean isSqrtBaseCase(String input) {
-        if (input.indexOf("sqrt(") == 0 && input.charAt(input.length() - 1) == ')') {
-            int numRightParentheses = 1;
-
-            int i = 5;
+            int i = symbol.length();
             while (i < input.length() && numRightParentheses > 0) {
                 String c = "" + input.charAt(i);
                 if (c.equals("(")) {
@@ -141,7 +135,7 @@ public class EquationTree {
     }
 
     /**
-     * Prints out LaTeX form
+     * Prints out LaTeX form without spaces in between
      */
     public String toString() {
         List<String> result = new ArrayList<>();
@@ -162,6 +156,10 @@ public class EquationTree {
                 result.add("}{");
                 toStringHelper(result, root.right);
                 result.add("}");
+            } else if (root.value.equals("{")) {
+                    result.add("{");
+                    toStringHelper(result, root.left);
+                    result.add("}");
             } else if (root.value.equals("(")) {
                     result.add("\\left(");
                     toStringHelper(result, root.left);
