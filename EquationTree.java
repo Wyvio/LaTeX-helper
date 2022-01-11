@@ -24,6 +24,7 @@ public class EquationTree {
         operators.add("*");
         operators.add("/");
         operators.add("^");
+        operators.add("_");
     }
 
     /**
@@ -45,6 +46,16 @@ public class EquationTree {
         input = input.trim();
         if (input.isEmpty()) {
             return null;
+        } else if (isBaseCase("|", "\\|", input)) {
+            EquationNode root = new EquationNode("|");
+            root.right = new EquationNode("\\|");
+            root.left = makeTreeHelper(input.substring(1, input.length() - 2));
+            return root;
+        } else if (isBaseCase("[", "]", input)) {
+            EquationNode root = new EquationNode("[");
+            root.right = new EquationNode("]");
+            root.left = makeTreeHelper(input.substring(1, input.length() - 1));
+            return root;
         } else if (isBaseCase("{", "}", input)) {
             EquationNode root = new EquationNode("{");
             root.right = new EquationNode("}");
@@ -66,6 +77,8 @@ public class EquationTree {
             int numRightParentheses = 0;
             int numRightSqrts = 0;
             int numRightCBrackets = 0;
+            int numRightBrackets = 0;
+            int numRightAbs = 0;
             for (String operator : operators) {
                 if (input.contains(operator)) {
                     for (int i = 0; i < input.length(); i++) {
@@ -74,6 +87,14 @@ public class EquationTree {
                             numRightSqrts++;
                             numRightParentheses++;
                             i += 4; // Skip to end of "sqrt(" so it is inside next
+                        } else if (c.equals("|")) {
+                            numRightAbs++;
+                        } else if (c.equals("\\|")) {
+                            numRightAbs--;
+                        } else if (c.equals("[")) {
+                            numRightBrackets++;
+                        } else if (c.equals("]")) {
+                            numRightBrackets--;
                         } else if (c.equals("{")) {
                             numRightCBrackets++;
                         } else if (c.equals("}")) {
@@ -85,7 +106,7 @@ public class EquationTree {
                             if (numRightSqrts > 0) {
                                 numRightSqrts--;
                             }
-                        } else if (c.equals(operator) && numRightParentheses == 0 && numRightCBrackets == 0) {
+                        } else if (c.equals(operator) && numRightParentheses == 0 && numRightCBrackets == 0 && numRightBrackets == 0 && numRightAbs == 0) {
                             root = new EquationNode(operator);
                             root.left = makeTreeHelper(input.substring(0, i));
                             root.right = makeTreeHelper(input.substring(i + 1));
@@ -112,7 +133,7 @@ public class EquationTree {
      * @return true when input has function symbols at the start and end e.g. sqrt(...), false otherwise
      */
     private boolean isBaseCase(String symbol, String endSymbol, String input) {
-        if (input.indexOf(symbol) == 0 && input.indexOf(endSymbol) == (input.length() - 1)) {
+        if (input.indexOf(symbol) == 0 && input.indexOf(endSymbol) == (input.length() - endSymbol.length())) {
             int numRightParentheses = 1;
 
             int i = symbol.length();
@@ -133,6 +154,12 @@ public class EquationTree {
             return false;
         }
     }
+
+    /**
+     * Helper method
+     * Check if this is an integral base case
+     * If so, return true (in makeTree, add the nodes)
+     */
 
     /**
      * Prints out LaTeX form without spaces in between
@@ -156,6 +183,14 @@ public class EquationTree {
                 result.add("}{");
                 toStringHelper(result, root.right);
                 result.add("}");
+            } else if (root.value.equals("|")) {
+                    result.add("\\left|");
+                    toStringHelper(result, root.left);
+                    result.add("\\right|");
+            } else if (root.value.equals("[")) {
+                    result.add("\\left[");
+                    toStringHelper(result, root.left);
+                    result.add("\\right]");
             } else if (root.value.equals("{")) {
                     result.add("{");
                     toStringHelper(result, root.left);
