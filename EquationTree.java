@@ -71,42 +71,56 @@ public class EquationTree {
             root.right = new EquationNode(")");
             root.left = makeTreeHelper(input.substring(5, input.length() - 1));
             return root;
+        } else if (isBaseCase("int_", ")", input)) {
+            EquationNode root = new EquationNode("int");
+            root.right = makeTreeHelper(input.substring(input.indexOf(" (") + 2, input.length() - 1));
+            root.left = new EquationNode(input.substring(4, input.indexOf("^")));
+            root.left.right = new EquationNode(input.substring(input.indexOf("^") + 1, input.indexOf(" (")));
+            return root;
         } else {
             EquationNode root = new EquationNode("");
             boolean isSplit = false;
-            int numRightParentheses = 0;
-            int numRightSqrts = 0;
-            int numRightCBrackets = 0;
-            int numRightBrackets = 0;
-            int numRightAbs = 0;
+            int numParentheses = 0;
+            int numSqrts = 0;
+            int numCBrackets = 0;
+            int numBrackets = 0;
+            int numAbs = 0;
+            int numInt = 0;
             for (String operator : operators) {
                 if (input.contains(operator)) {
                     for (int i = 0; i < input.length(); i++) {
                         String c = "" + input.charAt(i);
                         if (input.substring(i).indexOf("sqrt(") == 0) {
-                            numRightSqrts++;
-                            numRightParentheses++;
+                            numSqrts++;
+                            numParentheses++;
                             i += 4; // Skip to end of "sqrt(" so it is inside next
+                        } else if (input.substring(i).indexOf("int_") == 0) {
+                            numInt++;
+                            numParentheses++;
+                            i += input.indexOf("("); // Skip to end of "int_...^... (" so it is inside next
                         } else if (c.equals("|")) {
-                            numRightAbs++;
+                            numAbs++;
                         } else if (c.equals("\\|")) {
-                            numRightAbs--;
+                            numAbs--;
                         } else if (c.equals("[")) {
-                            numRightBrackets++;
+                            numBrackets++;
                         } else if (c.equals("]")) {
-                            numRightBrackets--;
+                            numBrackets--;
                         } else if (c.equals("{")) {
-                            numRightCBrackets++;
+                            numCBrackets++;
                         } else if (c.equals("}")) {
-                            numRightCBrackets--;
+                            numCBrackets--;
                         } else if (c.equals("(")) {
-                            numRightParentheses++;
+                            numParentheses++;
                         } else if (c.equals(")")) {
-                            numRightParentheses--;
-                            if (numRightSqrts > 0) {
-                                numRightSqrts--;
+                            numParentheses--;
+                            if (numSqrts > 0) {
+                                numSqrts--;
                             }
-                        } else if (c.equals(operator) && numRightParentheses == 0 && numRightCBrackets == 0 && numRightBrackets == 0 && numRightAbs == 0) {
+                            if (numInt > 0) {
+                                numInt--;
+                            }
+                        } else if (c.equals(operator) && numParentheses == 0 && numCBrackets == 0 && numBrackets == 0 && numAbs == 0) {
                             root = new EquationNode(operator);
                             root.left = makeTreeHelper(input.substring(0, i));
                             root.right = makeTreeHelper(input.substring(i + 1));
@@ -133,16 +147,16 @@ public class EquationTree {
      * @return true when input has function symbols at the start and end e.g. sqrt(...), false otherwise
      */
     private boolean isBaseCase(String symbol, String endSymbol, String input) {
-        if (input.indexOf(symbol) == 0 && input.indexOf(endSymbol) == (input.length() - endSymbol.length())) {
-            int numRightParentheses = 1;
+        if (input.indexOf(symbol) == 0 && input.lastIndexOf(endSymbol) == (input.length() - endSymbol.length())) {
+            int numParentheses = 1;
 
             int i = symbol.length();
-            while (i < input.length() && numRightParentheses > 0) {
+            while (i < input.length() && numParentheses > 0) {
                 String c = "" + input.charAt(i);
                 if (c.equals("(")) {
-                    numRightParentheses++;
+                    numParentheses++;
                 } else if (c.equals(")")) {
-                    numRightParentheses--;
+                    numParentheses--;
                 }
 
                 i++;
@@ -158,6 +172,7 @@ public class EquationTree {
     /**
      * Helper method
      * Check if this is an integral base case
+     *      starts with "int_"
      * If so, return true (in makeTree, add the nodes)
      */
 
@@ -203,12 +218,13 @@ public class EquationTree {
                     result.add("\\sqrt{");
                     toStringHelper(result, root.left);
                     result.add("}");
-            // } else if  (root.value.equals("int")) { //int_0^2(dfasdfsd)dx       \int_{2\pi}^{\pi} sodifsidjf \,dx
-            //     result.add("\\int{");
-            //     toStringHelper(result, root.left);
-            //     result.add("}{");
-            //     toStringHelper(result, root.right);
-            //     result.add("}");
+            } else if (root.value.equals("int")) { //int_0^2(dfasdfsd)dx       \int_{2\pi}^{\pi} sodifsidjf \,dx
+                result.add("\\int_{");
+                result.add(root.left.value);
+                result.add("}^{");
+                result.add(root.left.right.value);
+                result.add("} ");
+                toStringHelper(result, root.right);
             } else {
                 toStringHelper(result, root.left);
                 result.add(root.value);
